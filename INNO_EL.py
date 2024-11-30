@@ -28,7 +28,7 @@ def parse_french_dates(series):
 def parse_ohio_dates(series: pd.Series):
 	try:
 		locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
-		str_series = series.astype(str)
+		str_series = series.astype("string")
 		return pd.to_datetime(series, format="mixed",errors='raise')
 	except ValueError:
 		pass
@@ -49,34 +49,34 @@ def load_inno_el_into_df(filename: str):
 	new_dfs = []
 	for sheet in df:
 		particular_df = df[sheet]
-		particular_df["Country"] = particular_df["Country"].astype(str)
-		particular_df["Data type"] = particular_df["Data type"].astype(str)
+		particular_df["Country"] = particular_df["Country"].astype("string")
+		particular_df["Data type"] = particular_df["Data type"].astype("string")
 		try:
-			particular_df["Product"] = particular_df["Product"].astype(str)
+			particular_df["Product"] = particular_df["Product"].astype("string")
 		except KeyError:
 			pass
 		try:
-			particular_df["Products"] = particular_df["Products"].astype(str)
+			particular_df["Products"] = particular_df["Products"].astype("string")
 		except KeyError:
 			pass
 		try:
-			particular_df["Forecast Algorithm"] = particular_df["Forecast Algorithm"].astype(str)
+			particular_df["Forecast Algorithm"] = particular_df["Forecast Algorithm"].astype("string")
 		except KeyError:
 			pass
 		try:
-			particular_df["Data period"] = particular_df["Data period"].astype(str)
+			particular_df["Data period"] = particular_df["Data period"].astype("string")
 		except KeyError:
 			pass
 		try:
-			particular_df["Channel"] = particular_df["Channel"].astype(str)
+			particular_df["Channel"] = particular_df["Channel"].astype("string")
 		except KeyError:
 			pass
 		try:
-			particular_df["Indication"] = particular_df["Indication"].astype(str)
+			particular_df["Indication"] = particular_df["Indication"].astype("string")
 		except KeyError:
 			pass
 
-		particular_df["Date"] = particular_df["Date"].astype(str)
+		particular_df["Date"] = particular_df["Date"].astype("string")
 		particular_df["Date"] = parse_ohio_dates(particular_df["Date"])
 
 		new_dfs.append(particular_df)

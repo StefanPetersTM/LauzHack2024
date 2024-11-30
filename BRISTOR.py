@@ -49,34 +49,37 @@ def load_bristor_into_df(filename: str):
     new_dfs = []
     for sheet in df:
         particular_df = df[sheet]
-        particular_df["Country"] = particular_df["Country"].astype(str)
-        particular_df["Data type"] = particular_df["Data type"].astype(str)
+        particular_df["Country"] = particular_df["Country"].astype("string")
+        particular_df["Data type"] = particular_df["Data type"].astype("string")
         try:
-            particular_df["Product"] = particular_df["Product"].astype(str)
+            particular_df["Product"] = particular_df["Product"].astype("string")
         except KeyError:
             pass
         try:
-            particular_df["Products"] = particular_df["Products"].astype(str)
+            particular_df["Products"] = particular_df["Products"].astype("string")
         except KeyError:
             pass
         try:
-            particular_df["Forecast Algorithm"] = particular_df["Forecast Algorithm"].astype(str)
+            particular_df["Forecast Algorithm"] = particular_df["Forecast Algorithm"].astype("string")
         except KeyError:
             pass
         try:
-            particular_df["Data period"] = particular_df["Data period"].astype(str)
+            particular_df["Data period"] = particular_df["Data period"].astype("string")
         except KeyError:
             pass
         try:
-            particular_df["Channel"] = particular_df["Channel"].astype(str)
+            particular_df["Channel"] = particular_df["Channel"].astype("string")
         except KeyError:
             pass
         try:
-            particular_df["Indication"] = particular_df["Indication"].astype(str)
+            particular_df["Indication"] = particular_df["Indication"].astype("string")
         except KeyError:
             pass
-
-        particular_df["Date"] = particular_df["Date"].astype(str)
+        try:
+            particular_df["Measure"] = particular_df["Measure"].astype("string")
+        except KeyError:
+            pass
+        particular_df["Date"] = particular_df["Date"].astype("string")
         particular_df["Date"] = parse_ohio_dates(particular_df["Date"])
 
         new_dfs.append(particular_df)
