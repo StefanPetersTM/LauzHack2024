@@ -32,6 +32,7 @@ data1 = {
 pastdf = Prophet_bristor.get_past_df()
 
 df = Prophet_bristor.fc()
+permanent_df = df
 
 dfs = [df]
 
@@ -72,7 +73,7 @@ app.layout = html.Div([
             min=0,
             max=len(future_dates) - 1,
             step=1,
-            value=47,  # Default value
+            value=48,  # Default value
             marks={i: {"label": future_dates.iloc[i].strftime('%m-%y'), "style": {"transform": "rotate(45deg)"}} for i in range(len(future_dates))},
         ),
     ], style={'width': '96%', 'display': 'inline-block', 'padding': '10px'}),
@@ -180,6 +181,7 @@ def update_graph(slider_value, event_date, product, content, numeric_value):
 
     # Get the current limit from the slider (the date corresponding to the slider value)
     limit = limits.iloc[slider_value]
+    evt = future_dates.iloc[event_date]
 
     # Initialize the figure
     fig = go.Figure()
@@ -190,8 +192,27 @@ def update_graph(slider_value, event_date, product, content, numeric_value):
             x=pastdf[pastdf["ds"] <= limit]["ds"],
             y=pastdf[pastdf["ds"] <= limit]["y"],
             mode="markers+lines",
-            name=f"Dataset 1 (Limit: {limit.strftime('%Y-%m-%d')})",
+            name=f"Past Data (Current Date: {limit.strftime('%Y-%m')})",
             line=dict(color="blue"),
+        )
+    )
+
+    lower_error = permanent_df["yhat"] - permanent_df["yhat_lower"]
+    upper_error = permanent_df["yhat_upper"] - permanent_df["yhat"]
+
+    fig.add_trace(
+        go.Scatter(
+            x=permanent_df[permanent_df["ds"] >= limit]["ds"],
+            y=permanent_df[permanent_df["ds"] >= limit]["yhat"],
+            error_y=dict(
+                type="data",
+                array=upper_error[permanent_df["ds"] >= limit],  # Upper error range
+                symmetric=False,  # Indicating asymmetric error bars
+                arrayminus=lower_error[permanent_df["ds"] >= limit]  # Lower error range
+            ),
+            mode="markers+lines",
+            name=f"Future Prediction (No Event)",
+            line=dict(color=f"rgba({255 - 2 * 100},{100 + 2 * 50},{150 - 2 * 50},0.8)"),  # Different colors
         )
     )
 
@@ -211,7 +232,7 @@ def update_graph(slider_value, event_date, product, content, numeric_value):
                     arrayminus=lower_error[df["ds"] >= limit]  # Lower error range
                 ),
                 mode="markers+lines",
-                name=f"Dataset {i + 2}",
+                name=f"Future Prediction (Event Date: {evt.strftime('%Y-%m')})",
                 line=dict(color=f"rgba({255 - i * 100},{100 + i * 50},{150 - i * 50},0.8)"),  # Different colors
             )
         )
@@ -219,8 +240,7 @@ def update_graph(slider_value, event_date, product, content, numeric_value):
     # Use custom slider, dropdown, and numeric input to update the title dynamically
     fig.update_layout(
         title=(
-            f"Two Dataframes with Movable Limit: {limit.strftime('%Y-%m-%d')}<br>"
-            f"Custom Slider: {event_date}, Dropdown: {product}, dd: {content}, Numeric: {numeric_value}"
+            f"Value over time"
         ),
         xaxis_title="Date",
         yaxis_title="Value",
