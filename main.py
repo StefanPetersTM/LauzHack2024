@@ -4,14 +4,21 @@ from dash import Dash, dcc, html, Input, Output
 import Prophet_bristor
 
 
+
+
 def compute_correlation_matrix(pastdf, dfs):
-    merged_df = pastdf.rename(columns={"y": "past_y"})  # Rename for clarity
+    # Rename pastdf columns for clarity
+    merged_df = pastdf.rename(columns={"y": "past_y"})
+
+    # Merge all dataframes on the `ds` column
     for i, df in enumerate(dfs):
         df = df.rename(columns={"yhat": f"forecast_y_{i + 1}"})
         merged_df = pd.merge(merged_df, df[["ds", f"forecast_y_{i + 1}"]], on="ds", how="inner")
 
-    # Compute correlation matrix
-    return merged_df.corr()
+    # Drop the `ds` column (dates) and compute the correlation matrix
+    correlation_matrix = merged_df.drop(columns=["ds"]).corr()
+    return correlation_matrix
+
 
 # Create the Dash app
 app = Dash(__name__)
@@ -52,7 +59,7 @@ app.layout = html.Div([
             min=0,
             max=len(limits) - 1,
             step=1,
-            value=0,  # Initial slider position
+            value=47,  # Initial slider position
             marks={i: {"label": limits.iloc[i].strftime('%m-%y'), "style": {"transform": "rotate(45deg)"}} for i in range(len(limits))},
             updatemode='drag',
         ),
@@ -65,7 +72,7 @@ app.layout = html.Div([
             min=0,
             max=len(future_dates) - 1,
             step=1,
-            value=0,  # Default value
+            value=47,  # Default value
             marks={i: {"label": future_dates.iloc[i].strftime('%m-%y'), "style": {"transform": "rotate(45deg)"}} for i in range(len(future_dates))},
         ),
     ], style={'width': '96%', 'display': 'inline-block', 'padding': '10px'}),
@@ -94,6 +101,9 @@ app.layout = html.Div([
                 options=[
                     {"label": "Competitors new patients", "value": "competitors_new_patients"},
                     {"label": "Emails", "value": "emails"},
+                    {"label": "Mails", "value": "mail"},
+                    {"label": "Remote Calls", "value": "remote_call"},
+                    {"label": "Telephone", "value": "telephone"},
                     {"label": "Calls", "value": "calls"},
                     {"label": "Competitors share of voice", "value": "competitors_share_of_voice"},
                     {"label": "Share of voice", "value": "share_of_voice"},
@@ -129,6 +139,11 @@ html.Div([
     dcc.Graph(id="correlation-matrix", style={'padding': '10px'}),
 ], style={'width': '96%', 'display': 'inline-block', 'padding': '10px'}),
 
+# Add this section to your layout for the bar graph
+html.Div([
+    dcc.Graph(id="most-correlated-bar", style={'padding': '10px'}),
+], style={'width': '96%', 'display': 'inline-block', 'padding': '10px'}),
+
 
 ], style={'padding': '20px', 'backgroundColor': '#121212', 'minHeight': '100vh', 'fontFamily': 'monospace'})  # Set main background to a very dark color
 
@@ -140,6 +155,7 @@ previous_content = ''
 @app.callback(
     Output("graph", "figure"),
     Output("correlation-matrix", "figure"),
+    Output("most-correlated-bar", "figure"),
     Input("slider", "value"),
     Input("event-slider", "value"),
     Input("product", "value"),
@@ -221,19 +237,49 @@ def update_graph(slider_value, event_date, product, content, numeric_value):
             z=correlation_matrix.values,
             x=correlation_matrix.columns,
             y=correlation_matrix.index,
-            colorscale="algae"
+            colorscale="Sunset"
         )
     )
     heatmap_fig.update_layout(
         title="Correlation Matrix",
-        xaxis_title="Metrics",
+        xaxis=dict(
+            title="Metrics",
+            scaleanchor="y",  # Make x and y axes scale equally
+            scaleratio=1,  # Enforce square aspect ratio
+        ),
+        height=800,
         yaxis_title="Metrics",
         template="plotly_dark",
         font_family = "Monospace",
     )
 
-    return fig, heatmap_fig
+    # Create bar graph for most correlated values
+    corr_df = correlation_matrix.stack().reset_index()  # Flatten the matrix
+    corr_df.columns = ["Variable 1", "Variable 2", "Correlation"]
+    corr_df = corr_df[corr_df["Variable 1"] != corr_df["Variable 2"]]  # Exclude diagonal
+    corr_df["Abs Correlation"] = corr_df["Correlation"].abs()
+    top_correlations = corr_df.nlargest(10, "Abs Correlation")  # Get top 10 correlations
 
+    bar_fig = go.Figure(
+        data=go.Bar(
+            x=top_correlations["Variable 1"] + " & " + top_correlations["Variable 2"],
+            y=top_correlations["Correlation"],
+            text=top_correlations["Correlation"].round(2),
+            textposition="auto",
+            marker=dict(color="#FCB97D"),
+        )
+    )
+    bar_fig.update_layout(
+        title="Top 10 Most Correlated Pairs",
+        xaxis_title="Variable Pairs",
+        yaxis_title="Correlation Coefficient",
+        template="plotly_dark",
+        autosize=True,
+        margin=dict(l=40, r=40, t=60, b=60),
+        font_family = "Monospace",
+    )
+
+    return fig, heatmap_fig, bar_fig
 
 # Run the app
 if __name__ == "__main__":
