@@ -12,40 +12,23 @@ data1 = {
     "value": [10, 15, 20, 25, 30],
 }
 
-pastdf = pd.DataFrame(data1)
-pastdf["date"] = pd.to_datetime(pastdf["date"])
+pastdf = Prophet_bristor.get_past_df()
 
 df = Prophet_bristor.fc()
 
 dfs = [df]
 
 # Define the limits based on the date
-limits = pastdf["date"]
+limits = df["ds"]
+future_dates = df["ds"]
 
-# Combine datasets for the correlation matrix
-#combined_df = pastdf.merge(df, on="date", how="outer", suffixes=('_past', '_df2')).merge(
-#    df, on="date", how="outer", suffixes=('', '_df3'))
-
-# Calculate correlation matrix
-#numerical_columns = ["value_past", "value_df2", "value"]
-#corr_matrix = combined_df[numerical_columns].corr()
-
-# Create heatmap for the correlation matrix
-#corr_heatmap = go.Figure(data=go.Heatmap(
-#    z=corr_matrix.values,
-#    x=numerical_columns,
-#    y=numerical_columns,
-#    colorscale="Viridis",
-#    colorbar_title="Correlation",
-#))
-#corr_heatmap.update_layout(title="Correlation Matrix", template="plotly_dark", font_family="Monospace")
 
 app.layout = html.Div([
 
     # Title Section
     html.Div([
-        html.H1("Interactive Data Visualization with Sliders", style={'color': '#fff', 'fontSize': '32px', 'textAlign': 'center'}),
-        html.P("Use the sliders and dropdowns below to control the displayed data and adjust the graph.",
+        html.H1("Volumes Prediction and Event Forecasting", style={'color': '#fff', 'fontSize': '32px', 'textAlign': 'center'}),
+        html.P("Use the sliders and dropdowns below to control the displayed data.",
                style={'color': '#bbb', 'textAlign': 'center'}),
     ], style={'padding': '20px'}),
 
@@ -53,14 +36,14 @@ app.layout = html.Div([
     dcc.Graph(id="graph", style={'backgroundColor': '#1e1e1e'}),  # Set graph background color to dark
 
     html.Div([  # Date-based Slider
-        html.Label("Date-based Slider", style={'color': '#bbb', 'fontSize': '14px'}),
+        html.Label("Recorded and Forecast Data Slider", style={'color': '#bbb', 'fontSize': '14px'}),
         dcc.Slider(
             id="slider",
             min=0,
             max=len(limits) - 1,
             step=1,
             value=0,  # Initial slider position
-            marks={i: limits.iloc[i].strftime('%Y-%m-%d') for i in range(len(limits))},
+            marks={i: {"label": limits.iloc[i].strftime('%m-%y'), "style": {"transform": "rotate(45deg)"}} for i in range(len(limits))},
             updatemode='drag',
         ),
     ], style={'width': '96%', 'display': 'inline-block', 'padding': '10px'}),
@@ -70,11 +53,10 @@ app.layout = html.Div([
         dcc.Slider(
             id="event-slider",
             min=0,
-            max=len(limits) - 1,
+            max=len(future_dates) - 1,
             step=1,
             value=0,  # Default value
-            marks={i: limits.iloc[i].strftime('%Y-%m-%d') for i in range(len(limits))},
-            updatemode='drag',
+            marks={i: {"label": future_dates.iloc[i].strftime('%m-%y'), "style": {"transform": "rotate(45deg)"}} for i in range(len(future_dates))},
         ),
     ], style={'width': '96%', 'display': 'inline-block', 'padding': '10px'}),
 
@@ -92,25 +74,28 @@ app.layout = html.Div([
                     {"label": "Competitors", "value": "competitors"},
                 ],
                 value="bristor",  # Default selection
-                style={'backgroundColor': '#333', 'color': '#111', 'border': '1px solid #444'}
+                style={'backgroundColor': '#777', 'color': '#111', 'border': '1px solid #444'}
             ),
         ], style={'width': '40%', 'display': 'inline-block', 'padding': '10px'}),
 
         # Variable Dropdown
         html.Div([
-            html.Label("Variable", style={'color': '#bbb'}),
+            html.Label("Factor of Influence", style={'color': '#bbb'}),
             dcc.Dropdown(
                 id="content",
                 options=[
-                    {"label": "Activity", "value": "activity"},
+                    {"label": "Competitors new patients", "value": "competitors_new_patients"},
+                    {"label": "Emails", "value": "emails"},
+                    {"label": "Calls", "value": "calls"},
+                    {"label": "Competitors share of voice", "value": "competitors_share_of_voice"},
                     {"label": "Share of voice", "value": "share_of_voice"},
-                    {"label": "Demand sales", "value": "demand_sales"},
-                    {"label": "New patient share", "value": "patient_share"},
-                    {"label": "Indication split", "value": "indication_split"},
+                    {"label": "Factory volumes", "value": "factory_volumes"},
+                    {"label": "New patients", "value": "new_patients"},
+                    {"label": "Competitors demand volumes", "value": "competitors_demand_volumes"},
                 ],
                 value="activity",  # Default selection
                 style={
-                'backgroundColor': '#333',  # Dark background for the dropdown
+                'backgroundColor': '#777',  # Dark background for the dropdown
                 'color': '#111',  # White text for dropdown labels
                 'border': '1px solid #444',  # Dark border
                 'width': '100%'
@@ -120,24 +105,24 @@ app.layout = html.Div([
 
         # Factor Numeric Input
         html.Div([
-            html.Label("Factor:", style={'color': '#bbb'}),
+            html.Label("Multiplier", style={'color': '#bbb'}),
             dcc.Input(
                 id="numeric-input",
                 type="number",
                 min=0,
                 value=100,  # Default numeric input
-                style={'width': '100%', 'backgroundColor': '#333', 'color': '#fff', 'border': '1px solid #444', 'fontFamily': 'monospace'}
+                style={'width': '100%', 'backgroundColor': '#777', 'color': '#111', 'border': '1px solid #444', 'fontFamily': 'monospace'}
             ),
         ], style={'width': '15%', 'display': 'inline-block', 'padding': '10px'}),
 
     ], style={'padding': '20px', 'display': 'flex', 'flexWrap': 'wrap', 'justifyContent': 'space-between'}),
 
-    # Static Correlation Matrix Section
-#    html.Div([
-#        dcc.Graph(figure=corr_heatmap)
-#   ], style={'marginTop': '30px', 'fontFamily': 'monospace'}),
 
 ], style={'padding': '20px', 'backgroundColor': '#121212', 'minHeight': '100vh', 'fontFamily': 'monospace'})  # Set main background to a very dark color
+
+previous_event_date = ""
+previous_num_value = -1
+previous_content = ''
 
 # Callback to update the graph
 @app.callback(
@@ -149,9 +134,20 @@ app.layout = html.Div([
     Input("numeric-input", "value"),
 )
 
-def update_graph(slider_value, event_date, product, content, numeric_value):
 
-    update_df(event_date, product, content, numeric_value)
+def update_graph(slider_value, event_date, product, content, numeric_value):
+    global previous_event_date
+    global previous_content
+    global previous_num_value
+    global df
+    global dfs
+
+    if (previous_event_date != event_date or previous_num_value != numeric_value or previous_content != content):
+        df = Prophet_bristor.fc(future_dates.iloc[event_date], (numeric_value / 100.0 if numeric_value is not None else 0), content)
+        dfs = [df]
+    previous_event_date = event_date
+    previous_num_value = numeric_value
+    previous_content = content
 
     # Get the current limit from the slider (the date corresponding to the slider value)
     limit = limits.iloc[slider_value]
@@ -162,8 +158,8 @@ def update_graph(slider_value, event_date, product, content, numeric_value):
     # Dataframe 1 on the left of the limit
     fig.add_trace(
         go.Scatter(
-            x=pastdf[pastdf["date"] <= limit]["date"],
-            y=pastdf[pastdf["date"] <= limit]["value"],
+            x=pastdf[pastdf["ds"] <= limit]["ds"],
+            y=pastdf[pastdf["ds"] <= limit]["y"],
             mode="markers+lines",
             name=f"Dataset 1 (Limit: {limit.strftime('%Y-%m-%d')})",
             line=dict(color="blue"),
@@ -204,11 +200,6 @@ def update_graph(slider_value, event_date, product, content, numeric_value):
     )
 
     return fig
-
-def update_df(event_date, product, content, factor):
-    # pastdf := actual data
-    # dfs[] := all data frames
-    pass
 
 # Run the app
 if __name__ == "__main__":
