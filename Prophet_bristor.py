@@ -4,6 +4,7 @@ from prophet import Prophet
 import pandas as pd
 
 def forecast_regressor(future_df, regressor_column,df):
+    # You can create a Prophet model for each regressor
     regressor_model = Prophet()
 
     regressor_model.fit(df[['ds', regressor_column]].rename(columns={regressor_column:'y'}))
@@ -88,6 +89,7 @@ def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 's
 
     # Fit the model
     model.fit(df)
+    # If a competitor releases a
 
     # Create future DataFrame
     future = model.make_future_dataframe(periods=12, freq="M")  # Forecast for next 12 months
@@ -102,6 +104,9 @@ def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 's
     future['bristor_factory_volumes'] = df['bristor_factory_volumes']
     future['bristor_new_patients'] = df['bristor_new_patients']
     future['competitors_demand_volumes'] = df['competitors_demand_volumes']
+    future['mail'] = df['bristor_mail']
+    future['remote_call'] = df['bristor_remote_call']
+    future['telephone'] = df['bristor_telephone']
 
     future = future.fillna(method='bfill')
     future = future.fillna(method='ffill')
@@ -121,7 +126,12 @@ def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 's
         evt = 'bristor_new_patients'
     elif (event_type == 'competitors_demand_volumes'):
         evt = 'competitors_demand_volumes'
-
+    elif (event_type == 'mail'):
+        evt = 'bristor_mail'
+    elif (event_type == 'remote_call'):
+        evt = 'bristor_remote_call'
+    elif (event_type == 'telephone'):
+        evt = 'bristor_telephone'
 
     print(evt)
 
@@ -241,7 +251,6 @@ def fc_compounded(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, even
     # Make predictions
     return model.predict(future)
 
-fc()
 ### CORRELATION MATRIX
 
 
