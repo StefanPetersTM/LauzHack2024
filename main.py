@@ -3,6 +3,16 @@ import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output
 import Prophet_bristor
 
+
+def compute_correlation_matrix(pastdf, dfs):
+    merged_df = pastdf.rename(columns={"y": "past_y"})  # Rename for clarity
+    for i, df in enumerate(dfs):
+        df = df.rename(columns={"yhat": f"forecast_y_{i + 1}"})
+        merged_df = pd.merge(merged_df, df[["ds", f"forecast_y_{i + 1}"]], on="ds", how="inner")
+
+    # Compute correlation matrix
+    return merged_df.corr()
+
 # Create the Dash app
 app = Dash(__name__)
 
@@ -70,8 +80,6 @@ app.layout = html.Div([
                 id="product",
                 options=[
                     {"label": "Bristor", "value": "bristor"},
-                    {"label": "Yrex", "value": "yrex"},
-                    {"label": "Competitors", "value": "competitors"},
                 ],
                 value="bristor",  # Default selection
                 style={'backgroundColor': '#777', 'color': '#111', 'border': '1px solid #444'}
@@ -117,6 +125,10 @@ app.layout = html.Div([
 
     ], style={'padding': '20px', 'display': 'flex', 'flexWrap': 'wrap', 'justifyContent': 'space-between'}),
 
+html.Div([
+    dcc.Graph(id="correlation-matrix", style={'padding': '10px'}),
+], style={'width': '96%', 'display': 'inline-block', 'padding': '10px'}),
+
 
 ], style={'padding': '20px', 'backgroundColor': '#121212', 'minHeight': '100vh', 'fontFamily': 'monospace'})  # Set main background to a very dark color
 
@@ -127,6 +139,7 @@ previous_content = ''
 # Callback to update the graph
 @app.callback(
     Output("graph", "figure"),
+    Output("correlation-matrix", "figure"),
     Input("slider", "value"),
     Input("event-slider", "value"),
     Input("product", "value"),
@@ -199,7 +212,28 @@ def update_graph(slider_value, event_date, product, content, numeric_value):
         font_family="Monospace",
     )
 
-    return fig
+    # Compute correlation matrix
+    correlation_matrix = compute_correlation_matrix(pastdf, dfs)
+
+    # Create heatmap figure for correlation matrix
+    heatmap_fig = go.Figure(
+        data=go.Heatmap(
+            z=correlation_matrix.values,
+            x=correlation_matrix.columns,
+            y=correlation_matrix.index,
+            colorscale="algae"
+        )
+    )
+    heatmap_fig.update_layout(
+        title="Correlation Matrix",
+        xaxis_title="Metrics",
+        yaxis_title="Metrics",
+        template="plotly_dark",
+        font_family = "Monospace",
+    )
+
+    return fig, heatmap_fig
+
 
 # Run the app
 if __name__ == "__main__":
