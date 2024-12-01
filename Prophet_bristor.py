@@ -3,6 +3,20 @@ import BRISTOR
 from prophet import Prophet
 import pandas as pd
 
+def forecast_regressor(future_df, regressor_column,df):
+    # You can create a Prophet model for each regressor
+    regressor_model = Prophet()
+    regressor_model.add_regressor(regressor_column)
+
+    # Use the same 'ds' column as the main series for each regressor
+    regressor_model.fit(df[['ds', regressor_column]].rename(columns={regressor_column:'y'}))  # Fit on the original data
+
+    # Forecast the future values for the regressor
+    future_regressor = regressor_model.predict(future_df[['ds']])
+
+    return future_regressor[['ds', 'yhat']]
+
+
 def get_past_df():
     ### Loading
     bristor_df = BRISTOR.load_bristor_into_df("/home/samsung/Desktop/BMS/BRISTOR_Zegoland.xlsx")
@@ -85,11 +99,17 @@ def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 's
     future['competitors_new_patients'] = df['competitors_new_patients']
     future['bristor_emails'] = df['bristor_emails']
     future['bristor_call'] = df['bristor_call']
+    future['bristor_mail'] = df['bristor_mail']
+    future['bristor_remote_call'] = df['bristor_remote_call']
+    future['bristor_telephone'] = df['bristor_telephone']
     future['competitors_share_of_voice'] = df['competitors_share_of_voice']
     future['bristor_share_of_voice'] = df['bristor_share_of_voice']
     future['bristor_factory_volumes'] = df['bristor_factory_volumes']
     future['bristor_new_patients'] = df['bristor_new_patients']
     future['competitors_demand_volumes'] = df['competitors_demand_volumes']
+
+    future = future.fillna(method='bfill')
+    future = future.fillna(method='ffill')
 
     evt = 'competitors_new_patients'
     if (event_type == 'emails'):
@@ -109,6 +129,13 @@ def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 's
 
 
     print(evt)
+
+    # for regressor in ['competitors_new_patients', 'bristor_emails', 'bristor_call',
+    #                   'bristor_mail', 'bristor_remote_call', 'bristor_telephone',
+    #                   'competitors_share_of_voice', 'bristor_share_of_voice',
+    #                   'bristor_factory_volumes', 'bristor_new_patients', 'competitors_demand_volumes']:
+    #     forecasted_values = forecast_regressor(future, regressor, df)
+    #     future[regressor] = forecasted_values['yhat']
 
     # Adjust SoV for competitor impact
     for i, date in enumerate(future['ds']):  # TODO fix the share of voice
