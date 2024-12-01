@@ -150,7 +150,7 @@ def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 's
 
 def fc_compounded(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 'share_of_voice'):
     ### Loading
-    bristor_df = BRISTOR.load_bristor_into_df("/home/samsung/Desktop/BMS/BRISTOR_Zegoland.xlsx")
+    bristor_df = BRISTOR.load_bristor_into_df("C:\\Users\\arthu\\Downloads\\files\\BRISTOR_Zegoland.xlsx")
 
     ### hardcoding signals
     ds = pd.date_range(start="2020-08-01", end="2024-10-01", freq="M"),
@@ -198,6 +198,7 @@ def fc_compounded(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, even
     model.fit(df)
 
     # Create future DataFrame
+
     future = model.make_future_dataframe(periods=12, freq="M")  # Forecast for next 12 months
     future['competitors_new_patients'] = df['competitors_new_patients']
     future['bristor_emails'] = df['bristor_emails']
@@ -210,6 +211,9 @@ def fc_compounded(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, even
     future['bristor_factory_volumes'] = df['bristor_factory_volumes']
     future['bristor_new_patients'] = df['bristor_new_patients']
     future['competitors_demand_volumes'] = df['competitors_demand_volumes']
+    future['mail'] = df['bristor_mail']
+    future['remote_call'] = df['bristor_remote_call']
+    future['telephone'] = df['bristor_telephone']
 
     future = future.fillna(method='bfill')
     future = future.fillna(method='ffill')
@@ -229,7 +233,12 @@ def fc_compounded(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, even
         evt = 'bristor_new_patients'
     elif (event_type == 'competitors_demand_volumes'):
         evt = 'competitors_demand_volumes'
-
+    elif (event_type == 'mail'):
+        evt = 'bristor_mail'
+    elif (event_type == 'remote_call'):
+        evt = 'bristor_remote_call'
+    elif (event_type == 'telephone'):
+        evt = 'bristor_telephone'
 
     print(evt)
     last_ts = df.index[-1]
