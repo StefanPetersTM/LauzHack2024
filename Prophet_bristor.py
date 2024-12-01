@@ -2,12 +2,10 @@ import BRISTOR
 
 from prophet import Prophet
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 def get_past_df():
     ### Loading
-    bristor_df = BRISTOR.load_bristor_into_df("C:\\Users\\arthu\\Downloads\\files\\BRISTOR_Zegoland.xlsx")
+    bristor_df = BRISTOR.load_bristor_into_df("/home/samsung/Desktop/BMS/BRISTOR_Zegoland.xlsx")
 
     ### hardcoding signals
     ds = pd.date_range(start="2020-08-01", end="2024-10-01", freq="M"),
@@ -34,7 +32,7 @@ def get_past_df():
 
 def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 'share_of_voice'):
     ### Loading
-    bristor_df = BRISTOR.load_bristor_into_df("C:\\Users\\arthu\\Downloads\\files\\BRISTOR_Zegoland.xlsx")
+    bristor_df = BRISTOR.load_bristor_into_df("/home/samsung/Desktop/BMS/BRISTOR_Zegoland.xlsx")
 
     ### hardcoding signals
     ds = pd.date_range(start="2020-08-01", end="2024-10-01", freq="M"),
@@ -42,31 +40,34 @@ def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 's
     bristor_new_patients = bristor_df[3][:44].set_index('Date')['Value'].rename('bristor_new_patients')
     competitors_new_patients = bristor_df[3][44:87].set_index('Date')['Value'].rename('competitors_new_patients')
     bristor_emails = bristor_df[4][:51].set_index('Date')['Value'].rename('bristor_emails')
-    bristor_call = bristor_df[4][51:].set_index('Date')['Value'].rename('bristor_call')
+    bristor_call = bristor_df[4][51:103].set_index('Date')['Value'].rename('bristor_call')
+    bristor_mail = bristor_df[4][104:153].set_index('Date')['Value'].rename('bristor_mail')
+    bristor_remote_call = bristor_df[4][153:201].set_index('Date')['Value'].rename('bristor_remote_call')
+    bristore_telephone = bristor_df[4][201:].set_index('Date')['Value'].rename('bristor_telephone')
     bristor_share_of_voice = bristor_df[5][:40].set_index('Date')['Value'].rename('bristor_share_of_voice')
     competitors_share_of_voice = bristor_df[5][40:80].set_index('Date')['Value'].rename('competitors_share_of_voice')
     bristor_factory_volumes = bristor_df[0].set_index('Date')['Value'].rename('bristor_factory_volumes')
     bristor_demand_volumes = bristor_df[2][:46].set_index('Date')['Value'].rename('y')  # bristor_demand_volumes
     competitors_demand_volumes = bristor_df[2][46:92].set_index('Date')['Value'].rename('competitors_demand_volumes')
 
-    df = bristor_demand_volumes.to_frame().join(competitors_new_patients, how='outer').join(bristor_emails,
+    df = (bristor_demand_volumes.to_frame().join(competitors_new_patients, how='outer').join(bristor_emails,
                                                                                             how='outer').join(
         bristor_call, how='outer').join(bristor_share_of_voice, how='outer').join(competitors_share_of_voice,
                                                                                   how='outer').join(
-        bristor_factory_volumes, how='outer').join(bristor_new_patients, how='outer').join(competitors_demand_volumes,
-                                                                                           how='outer').reset_index().rename(
-        columns={'Date': 'ds'})
-
+        bristor_factory_volumes, how='outer').join(bristor_new_patients, how='outer').join(competitors_demand_volumes,how='outer').join(bristor_mail, how='outer').join(bristor_remote_call, how='outer').join(bristore_telephone,how='outer')).reset_index().rename(columns={'Date': 'ds'})
     ### TODO check if this makes sense
     df = df.fillna(method='bfill')
     df = df.fillna(method='ffill')
-
+    df = df.drop([54,50, 52])
     # df = df.fillna(0)
 
     model = Prophet()  # TODO tweak parameters
     model.add_regressor('competitors_new_patients')
     model.add_regressor('bristor_emails')
     model.add_regressor('bristor_call')
+    model.add_regressor('bristor_mail')
+    model.add_regressor('bristor_remote_call')
+    model.add_regressor('bristor_telephone')
     model.add_regressor('competitors_share_of_voice')
     model.add_regressor('bristor_share_of_voice')
     model.add_regressor('bristor_factory_volumes')
@@ -106,6 +107,7 @@ def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 's
     elif (event_type == 'competitors_demand_volumes'):
         evt = 'competitors_demand_volumes'
 
+
     print(evt)
 
     # Adjust SoV for competitor impact
@@ -116,6 +118,7 @@ def fc(event_start = pd.to_datetime("2025-04-01"), impact = 1.0, event_type = 's
     # Make predictions
     return model.predict(future)
 
+fc()
 ### CORRELATION MATRIX
 
 
