@@ -4,7 +4,7 @@ from dash import Dash, dcc, html, Input, Output
 import Prophet_bristor
 
 
-
+file_location = "./BRISTOR_Zegoland.xlsx" # put in your own path to the bristor file
 
 def compute_correlation_matrix(pastdf, dfs):
     # Rename pastdf columns for clarity
@@ -29,9 +29,9 @@ data1 = {
     "value": [10, 15, 20, 25, 30],
 }
 
-pastdf = Prophet_bristor.get_past_df()
+pastdf = Prophet_bristor.get_past_df(file_location)
 
-df = Prophet_bristor.fc()
+df = Prophet_bristor.fc(file_location)
 permanent_df = df
 
 dfs = [df]
@@ -173,7 +173,7 @@ def update_graph(slider_value, event_date, product, content, numeric_value):
     global dfs
 
     if (previous_event_date != event_date or previous_num_value != numeric_value or previous_content != content):
-        df = Prophet_bristor.fc(future_dates.iloc[event_date], (numeric_value / 100.0 if numeric_value is not None else 0), content)
+        df = Prophet_bristor.fc(file_location,future_dates.iloc[event_date], (numeric_value / 100.0 if numeric_value is not None else 0), content)
         dfs = [df]
     previous_event_date = event_date
     previous_num_value = numeric_value
