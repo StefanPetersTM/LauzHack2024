@@ -1,8 +1,43 @@
-# Bristor Demand Forecasting and Event Simulation Dashboard
+### Quickstart guide
+
+
+# Demand Forecasting and Event Simulation Dashboard
 
 ## Overview
 
 Our project is an interactive dashboard designed to forecast Bristor's demand volumes and simulate the impact of various marketing events on future demand. By leveraging Facebook's Prophet time series forecasting model and an interactive Dash application, we provide a powerful tool for stakeholders to visualize and understand how different factors influence Bristor's future demand.
+
+## How to Run the Project
+
+### Setup Instructions
+
+1. **Clone the Repository**:
+
+   ```bash
+   git clone https://github.com/yourusername/bristor-forecasting.git
+   cd bristor-forecasting
+   ```
+
+2. **Install Dependencies**:
+
+   ```bash
+   pip install pandas numpy prophet dash plotly
+   ```
+
+3. **Place the Data File**:
+
+   - Change the file path in `Prophet_Bristor.py` path pointing to `BRISTOR_Zegoland.xlsx`.
+
+4. **Run the Application**:
+
+   ```bash
+   python main.py
+   ```
+
+5. **Access the Dashboard**:
+
+   - Open your web browser and navigate to `http://127.0.0.1:8050` to view the dashboard.
+
 
 ## Problem Statement
 
@@ -62,67 +97,7 @@ We developed a dynamic forecasting tool that:
 - **Callback Functions**: Dash callbacks ensure that any change in the inputs triggers an update in the forecast and visualizations.
 - **Data Reprocessing**: The model recalculates forecasts based on new inputs, ensuring that the displayed information is always up-to-date.
 
-## How to Run the Project
-
-### Prerequisites
-
-- **Python 3.x**
-- **Required Python Packages**:
-  - `pandas`
-  - `numpy`
-  - `prophet`
-  - `dash`
-  - `plotly`
-
-### Setup Instructions
-
-1. **Clone the Repository**:
-
-   ```bash
-   git clone https://github.com/yourusername/bristor-forecasting.git
-   cd bristor-forecasting
-   ```
-
-2. **Install Dependencies**:
-
-   ```bash
-   pip install pandas numpy prophet dash plotly
-   ```
-
-3. **Place the Data File**:
-
-   - Ensure the `BRISTOR_Zegoland.xlsx` file is located in the specified directory in the code (`/home/samsung/Desktop/BMS/`).
-   - Update the file path in `Prophet_Bristor.py` if necessary.
-
-4. **Run the Application**:
-
-   ```bash
-   python main.py
-   ```
-
-5. **Access the Dashboard**:
-
-   - Open your web browser and navigate to `http://127.0.0.1:8050` to view the dashboard.
-
 ## Technical Details
-
-### Code Structure
-
-- **`Prophet_Bristor.py`**:
-  - **Data Loading and Processing**: Handles loading data from Excel files and preprocessing it for modeling.
-  - **Forecast Function (`fc`)**: Defines the forecasting model, incorporates event simulation, and returns forecasted data.
-- **`main.py`**:
-  - **Dashboard Setup**: Initializes the Dash application and defines the layout.
-  - **User Interaction**: Contains callback functions that update graphs and analyses based on user inputs.
-  - **Visualization**: Renders the forecast graph and correlation matrix.
-
-### Forecasting Model
-
-- **Prophet Model Configuration**:
-  - **Regressors**: Incorporates multiple external regressors that are significant predictors of demand.
-  - **Event Impact Simulation**: Adjusts the specified regressor in the future data frame to simulate the event's impact.
-- **Model Fitting and Prediction**:
-  - Trained on historical data and generates forecasts for the specified future periods.
 
 ### Dashboard Components
 
@@ -139,23 +114,7 @@ We developed a dynamic forecasting tool that:
 - **User-Centric Design**: The dashboard's intuitive interface makes complex data analysis accessible to users without a technical background.
 - **Scalability**: The framework can be easily extended to include more products, additional influencing factors, or more complex event scenarios.
 
-## Challenges Overcome
-
-- **Data Alignment**: Managed time series data with differing lengths and frequencies, ensuring accurate alignment for modeling.
-- **Real-Time Forecast Updating**: Implemented efficient callbacks to update forecasts and visualizations without significant latency.
-- **User Interface Design**: Balanced complexity and usability to create an interface that is both powerful and user-friendly.
-
-## Future Enhancements
-
-- **Additional Models**: Integrate other forecasting models to compare performance and improve accuracy.
-- **Enhanced Event Types**: Allow for more complex events, such as multiple simultaneous impacts or delayed effects.
-- **User Authentication**: Add user login functionality to save configurations and preferences.
-- **Deployment**: Host the application on a server for broader accessibility within the organization.
 
 ## Conclusion
 
 Our interactive dashboard provides a valuable tool for Bristor's sales and marketing teams to forecast demand and make informed decisions. By simulating the impact of various events and visualizing the results in real-time, stakeholders can proactively strategize and respond to market changes. This project showcases the power of combining advanced forecasting techniques with interactive data visualization to address real-world business challenges.
-
----
-
-**Thank you for considering our project. We believe it offers significant value and innovation in demand forecasting and decision support. We look forward to your feedback and questions.**
